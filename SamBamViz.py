@@ -63,8 +63,19 @@ def compute_stats(aln):
         'num_reads': {
             'all': 0,
             'unmapped': 0,
-            'mapped': dict(), # keys = chromosomes, values = num mapped
+            'mapped': dict(), # data['num_reads']['mapped'][chrom] = number of reads that mapped to `chrom`
         },
+        'read_length': {
+            'raw': { # raw (unclipped) read length
+                'unmapped': list(),
+                'mapped': dict(), # data['read_length']['raw']['mapped'][chrom] = `list` of raw (unclipped) lengths of reads mapping to `chrom`
+            },
+            'clipped': { # clipped read length
+                'unmapped': list(),
+                'mapped': dict() # data['read_length']['clipped']['mapped'][chrom] = `list` of clipped lengths of reads mapping to `chrom`
+            },
+        },
+        'coverage': dict(), # data['coverage'][chrom][pos] = number of reads that covered postion `pos` of `chrom`
     }
 
     # iterate over SAM/BAM
@@ -74,13 +85,25 @@ def compute_stats(aln):
         # unmapped reads
         if read.is_unmapped:
             data['num_reads']['unmapped'] += 1
+            data['read_length']['raw']['unmapped'].append(read.query_length)
+            data['read_length']['clipped']['unmapped'].append(read.query_alignment_length)
 
         # mapped reads
         else:
+            # parse chromosome name and add if new
             chrom = read.reference_name
             if chrom not in data['num_reads']['mapped']:
                 data['num_reads']['mapped'][chrom] = 0
+                data['read_length']['raw']['mapped'][chrom] = list()
+                data['read_length']['clipped']['mapped'][chrom] = list()
+                data['coverage'][chrom] = dict()
             data['num_reads']['mapped'][chrom] += 1
+            data['read_length']['raw']['mapped'][chrom].append(read.query_length)
+            data['read_length']['clipped']['mapped'][chrom].append(read.query_alignment_length)
+            for read_pos, ref_pos in read.get_aligned_pairs(matches_only=True, with_seq=False):
+                if read_pos not in data['coverage'][chrom]:
+                    data['coverage'][chrom][read_pos] = 0
+                data['coverage'][chrom][read_pos] += 1
     return data
 
 # main content
@@ -100,11 +123,32 @@ if __name__ == "__main__":
     print_log("Parsing input file...")
     data = compute_stats(aln)
     print_log("Finished parsing input file")
-    print_log("- Total number entries: %d" % data['num_reads']['all'])
-    print_log("- Number unmapped: %d" % data['num_reads']['unmapped'])
-    print_log("- Number mapped: %d" % sum(data['num_reads']['mapped'].values()))
+
+    # print number of reads
+    print_log("- Number of reads: %d" % data['num_reads']['all'])
+    print_log("  - Unmapped: %d" % data['num_reads']['unmapped'])
+    print_log("  - Mapped: %d" % sum(data['num_reads']['mapped'].values()))
     for chrom in sorted(data['num_reads']['mapped'].keys()):
         print_log("    - %s: %d" % (chrom, data['num_reads']['mapped'][chrom]))
+
+    # print average read length
+    for k, s in [('raw', "raw (unclipped)"), ('clipped', "clipped")]:
+        print_log("- Average %s read length: %s" % (s, "TODO")) # TODO
+        if len(data['read_length'][k]['unmapped']) == 0:
+            print_log("  - Unmapped: N/A")
+        else:
+            print_log("  - Unmapped: %s" % (sum(data['read_length'][k]['unmapped'])/len(data['read_length'][k]['unmapped'])))
+        print_log("  - Mapped: %s" % (sum(sum(data['read_length'][k]['mapped'][chrom]) for chrom in data['read_length'][k]['mapped'])/sum(len(data['read_length'][k]['mapped'][chrom]) for chrom in data['read_length'][k]['mapped'])))
+        for chrom in sorted(data['read_length'][k]['mapped'].keys()):
+            if len(data['read_length'][k]['mapped'][chrom]) == 0:
+                print_log("    - %s: N/A" % chrom)
+            else:
+                print_log("    - %s: %s" % (chrom, sum(data['read_length'][k]['mapped'][chrom])/len(data['read_length'][k]['mapped'][chrom])))
+
+    # print average coverage
+    print_log("- Average coverage: %s" % (sum(sum(data['coverage'][chrom].values()) for chrom in data['coverage'])/sum(len(data['coverage'][chrom]) for chrom in data['coverage'])))
+    for chrom in sorted(data['num_reads']['mapped'].keys()):
+        print_log("  - %s: %s" % (chrom, sum(data['coverage'][chrom].values())/len(data['coverage'][chrom])))
 
     # finish up
     LOGFILE.close()
