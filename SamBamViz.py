@@ -5,15 +5,25 @@ SamBamViz: Tool for generating useful visualizations from a SAM/BAM file
 
 # imports
 from datetime import datetime
+from matplotlib import rcParams
+from matplotlib.lines import Line2D
 from os import makedirs
 from os.path import isdir, isfile
+from seaborn import color_palette, kdeplot, set_context, set_style
 from sys import argv, stderr
 import argparse
+import matplotlib
+import matplotlib.pyplot as plt
 import pysam
 
 # constants
 VERSION = '0.0.1'
 global LOGFILE; LOGFILE = None
+
+# prep matplotlib/seaborn
+matplotlib.use("Agg")
+RC = {"font.size":12,"axes.titlesize":16,"axes.labelsize":14,"legend.fontsize":10,"xtick.labelsize":10,"ytick.labelsize":10}
+set_context("paper", rc=RC); set_style("ticks"); rcParams['font.family'] = 'serif'
 
 # print log
 def print_log(s='', end='\n'):
@@ -75,12 +85,17 @@ def compute_stats(aln):
                 'mapped': dict() # data['read_length']['clipped']['mapped'][chrom] = `list` of clipped lengths of reads mapping to `chrom`
             },
         },
+        'insert_size': list(),
         'coverage': dict(), # data['coverage'][chrom][pos] = number of reads that covered postion `pos` of `chrom`
     }
 
     # iterate over SAM/BAM
     for read in aln:
         data['num_reads']['all'] += 1
+
+        # insert size
+        if read.template_length > 0: #and read.is_proper_pair and read.is_paired:
+            data['insert_size'].append(read.template_length)
 
         # unmapped reads
         if read.is_unmapped:
@@ -105,6 +120,27 @@ def compute_stats(aln):
                     data['coverage'][chrom][read_pos] = 0
                 data['coverage'][chrom][read_pos] += 1
     return data
+
+# plot read length distributions
+def plot_read_length(data, outdir):
+    for k, s in [('raw', "Raw (Unclipped)"), ('clipped', "Clipped")]:
+        fig, ax = plt.subplots(); handles = list()
+        if len(data['read_length'][k]['unmapped']) + sum(len(data['read_length'][k]['mapped'][chrom]) for chrom in data['read_length'][k]['mapped']) > max([len(data['read_length'][k]['unmapped'])] + [len(data['read_length'][k]['mapped'][chrom]) for chrom in data['read_length'][k]['mapped']]):
+            handles.append(Line2D([0],[0],label="All",color='black',linestyle='-'))
+            kdeplot(data['read_length'][k]['unmapped'] + [v for chrom in data['read_length'][k]['mapped'] for v in data['read_length'][k]['mapped'][chrom]], label="All", color='black', linestyle='-')
+        if len(data['read_length'][k]['unmapped']) != 0:
+            handles.append(Line2D([0],[0],label="Unmapped",color='red',linestyle='-'))
+            kdeplot(data['read_length'][k]['unmapped'], label="Unmapped", color='red', linestyle='-')
+        mapped_colors = color_palette('Greens', n_colors=len(data['read_length'][k]['mapped']))
+        for i, chrom in enumerate(sorted(data['read_length'][k]['mapped'].keys())):
+            if len(data['read_length'][k]['mapped'][chrom]) != 0:
+                handles.append(Line2D([0],[0],label=chrom,color=mapped_colors[i],linestyle='-'))
+                kdeplot(data['read_length'][k]['mapped'][chrom], label=chrom, color=mapped_colors[i], linestyle='-')
+        plt.title("%s Read Length" % s)
+        plt.xlabel("%s Read Length" % s)
+        plt.ylabel("Kernel Density Estimate")
+        plt.legend(handles=handles, frameon=True)
+        fig.savefig("%s/read_length_%s.pdf" % (outdir,k), format='pdf', bbox_inches='tight'); plt.close(fig)
 
 # main content
 if __name__ == "__main__":
@@ -133,7 +169,7 @@ if __name__ == "__main__":
 
     # print average read length
     for k, s in [('raw', "raw (unclipped)"), ('clipped', "clipped")]:
-        print_log("- Average %s read length: %s" % (s, "TODO")) # TODO
+        print_log("- Average %s read length: %s" % (s, ((sum(data['read_length'][k]['unmapped']) + sum(sum(data['read_length'][k]['mapped'][chrom]) for chrom in data['read_length'][k]['mapped']))/(len(data['read_length'][k]['unmapped']) + sum(len(data['read_length'][k]['mapped'][chrom]) for chrom in data['read_length'][k]['mapped'])))))
         if len(data['read_length'][k]['unmapped']) == 0:
             print_log("  - Unmapped: N/A")
         else:
@@ -145,10 +181,21 @@ if __name__ == "__main__":
             else:
                 print_log("    - %s: %s" % (chrom, sum(data['read_length'][k]['mapped'][chrom])/len(data['read_length'][k]['mapped'][chrom])))
 
+    # print average insert size
+    if len(data['insert_size']) == 0:
+        print_log("- Average insert size: N/A")
+    else:
+        print_log("- Average insert size: %s" % (sum(data['insert_size'])/len(data['insert_size'])))
+
     # print average coverage
     print_log("- Average coverage: %s" % (sum(sum(data['coverage'][chrom].values()) for chrom in data['coverage'])/sum(len(data['coverage'][chrom]) for chrom in data['coverage'])))
     for chrom in sorted(data['num_reads']['mapped'].keys()):
         print_log("  - %s: %s" % (chrom, sum(data['coverage'][chrom].values())/len(data['coverage'][chrom])))
+
+    # generate plots
+    print_log("Plotting read length distributions...")
+    plot_read_length(data, args.output)
+    print_log("Finished plotting read length distributions")
 
     # finish up
     LOGFILE.close()
