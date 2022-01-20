@@ -9,7 +9,7 @@ from matplotlib import rcParams
 from matplotlib.lines import Line2D
 from os import makedirs
 from os.path import isdir, isfile
-from seaborn import color_palette, kdeplot, set_context, set_style
+from seaborn import color_palette, kdeplot, lineplot, set_context, set_style
 from sys import argv, stderr
 import argparse
 import matplotlib
@@ -116,9 +116,9 @@ def compute_stats(aln):
             data['read_length']['raw']['mapped'][chrom].append(read.query_length)
             data['read_length']['clipped']['mapped'][chrom].append(read.query_alignment_length)
             for read_pos, ref_pos in read.get_aligned_pairs(matches_only=True, with_seq=False):
-                if read_pos not in data['coverage'][chrom]:
-                    data['coverage'][chrom][read_pos] = 0
-                data['coverage'][chrom][read_pos] += 1
+                if ref_pos not in data['coverage'][chrom]:
+                    data['coverage'][chrom][ref_pos] = 0
+                data['coverage'][chrom][ref_pos] += 1
     return data
 
 # plot read length distributions
@@ -140,7 +140,26 @@ def plot_read_length(data, outdir):
         plt.xlabel("%s Read Length" % s)
         plt.ylabel("Kernel Density Estimate")
         plt.legend(handles=handles, frameon=True)
-        fig.savefig("%s/read_length_%s.pdf" % (outdir,k), format='pdf', bbox_inches='tight'); plt.close(fig)
+        fig.savefig("%s/read_length_%s.pdf" % (outdir,k), format='pdf', bbox_inches='tight')
+        plt.close(fig)
+
+# plot coverage over genome
+def plot_coverage(data, outdir):
+    for chrom in sorted(data['coverage'].keys()):
+        if len(data['coverage'][chrom]) == 0:
+            continue
+        xmax = max(data['coverage'][chrom].keys())
+        x = list(range(xmax+1))
+        y = [0 for _ in range(len(x))]
+        for pos in data['coverage'][chrom]:
+            y[pos] = data['coverage'][chrom][pos]
+        fig, ax = plt.subplots()
+        lineplot(x=x, y=y, color='black', linestyle='-')
+        plt.title("Coverage: %s" % chrom)
+        plt.xlabel("Position (0-based)")
+        plt.ylabel("Coverage")
+        fig.savefig("%s/coverage_%s.pdf" % (outdir, chrom.replace(' ','-')), format='pdf', bbox_inches='tight')
+        plt.close(fig)
 
 # main content
 if __name__ == "__main__":
@@ -196,6 +215,9 @@ if __name__ == "__main__":
     print_log("Plotting read length distributions...")
     plot_read_length(data, args.output)
     print_log("Finished plotting read length distributions")
+    print_log("Plotting coverage...")
+    plot_coverage(data, args.output)
+    print_log("Finished plotting coverage")
 
     # finish up
     LOGFILE.close()
