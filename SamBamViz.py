@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import pysam
 
 # constants
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 global LOGFILE; LOGFILE = None
 
 # prep matplotlib/seaborn
@@ -45,6 +45,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', required=False, type=str, default='stdin', help="Input File (SAM/BAM)")
     parser.add_argument('-o', '--output', required=True, type=str, help="Output Directory")
+    parser.add_argument('--ylog', action="store_true", help="Log-scale Y-Axis")
     args = parser.parse_args()
     if isfile(args.output) or isdir(args.output):
         error("Output already exits: %s" % args.output)
@@ -122,7 +123,7 @@ def compute_stats(aln):
     return data
 
 # plot read length distributions
-def plot_read_length(data, outdir):
+def plot_read_length(data, outdir, ylog=False):
     for k, s in [('raw', "Raw (Unclipped)"), ('clipped', "Clipped")]:
         fig, ax = plt.subplots(); handles = list()
         if len(data['read_length'][k]['unmapped']) + sum(len(data['read_length'][k]['mapped'][chrom]) for chrom in data['read_length'][k]['mapped']) > max([len(data['read_length'][k]['unmapped'])] + [len(data['read_length'][k]['mapped'][chrom]) for chrom in data['read_length'][k]['mapped']]):
@@ -139,12 +140,14 @@ def plot_read_length(data, outdir):
         plt.title("%s Read Length" % s)
         plt.xlabel("%s Read Length" % s)
         plt.ylabel("Kernel Density Estimate")
+        if ylog:
+            ax.set_yscale('log')
         plt.legend(handles=handles, frameon=True)
         fig.savefig("%s/read_length_%s.pdf" % (outdir,k), format='pdf', bbox_inches='tight')
         plt.close(fig)
 
 # plot coverage over genome
-def plot_coverage(data, outdir):
+def plot_coverage(data, outdir, ylog=False):
     for chrom in sorted(data['coverage'].keys()):
         if len(data['coverage'][chrom]) == 0:
             continue
@@ -158,6 +161,8 @@ def plot_coverage(data, outdir):
         plt.title("Coverage: %s" % chrom)
         plt.xlabel("Position (0-based)")
         plt.ylabel("Coverage")
+        if ylog:
+            ax.set_yscale('log')
         fig.savefig("%s/coverage_%s.pdf" % (outdir, chrom.replace(' ','-')), format='pdf', bbox_inches='tight')
         plt.close(fig)
 
@@ -213,10 +218,10 @@ if __name__ == "__main__":
 
     # generate plots
     print_log("Plotting read length distributions...")
-    plot_read_length(data, args.output)
+    plot_read_length(data, args.output, ylog=args.ylog)
     print_log("Finished plotting read length distributions")
     print_log("Plotting coverage...")
-    plot_coverage(data, args.output)
+    plot_coverage(data, args.output, ylog=args.ylog)
     print_log("Finished plotting coverage")
 
     # finish up
