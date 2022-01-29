@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import pysam
 
 # constants
-VERSION = '0.0.2'
+VERSION = '0.0.3'
 global LOGFILE; LOGFILE = None
 
 # prep matplotlib/seaborn
@@ -88,6 +88,7 @@ def compute_stats(aln):
         },
         'insert_size': list(),
         'coverage': dict(), # data['coverage'][chrom][pos] = number of reads that covered postion `pos` of `chrom`
+        'nuc_count': dict(), # data['nuc_count'][chrom][pos][nuc] = number of occurrences of nucleotide `nuc` at position `pos` of `chrom`
     }
 
     # iterate over SAM/BAM
@@ -113,13 +114,19 @@ def compute_stats(aln):
                 data['read_length']['raw']['mapped'][chrom] = list()
                 data['read_length']['clipped']['mapped'][chrom] = list()
                 data['coverage'][chrom] = dict()
+                data['nuc_count'][chrom] = dict()
             data['num_reads']['mapped'][chrom] += 1
             data['read_length']['raw']['mapped'][chrom].append(read.query_length)
             data['read_length']['clipped']['mapped'][chrom].append(read.query_alignment_length)
             for read_pos, ref_pos in read.get_aligned_pairs(matches_only=True, with_seq=False):
                 if ref_pos not in data['coverage'][chrom]:
                     data['coverage'][chrom][ref_pos] = 0
+                    data['nuc_count'][chrom][ref_pos] = {'A':0, 'C':0, 'G':0, 'T':0, 'X':0}
                 data['coverage'][chrom][ref_pos] += 1
+                nuc = read.query_sequence[read_pos].upper()
+                if nuc not in {'A','C','G','T'}:
+                    nuc = 'X'
+                data['nuc_count'][chrom][ref_pos][nuc] += 1
     return data
 
 # plot read length distributions
@@ -165,6 +172,20 @@ def plot_coverage(data, outdir, ylog=False):
             ax.set_yscale('log')
         fig.savefig("%s/coverage_%s.pdf" % (outdir, chrom.replace(' ','-')), format='pdf', bbox_inches='tight')
         plt.close(fig)
+
+# write nucleotide counts at each position
+def write_nuc_counts(data, outdir):
+    for chrom in sorted(data['nuc_count'].keys()):
+        f = open("%s/nuc_count_%s.tsv" % (outdir, chrom.replace(' ','-')), 'w')
+        f.write("Pos\tA\tC\tG\tT\tOther\n")
+        max_ref_pos = max(data['nuc_count'][chrom].keys())
+        for ref_pos in range(max_ref_pos+1):
+            if ref_pos in data['nuc_count'][chrom]:
+                c = data['nuc_count'][chrom][ref_pos]
+                f.write("%d\t%d\t%d\t%d\t%d\t%d\n" % (ref_pos, c['A'], c['C'], c['G'], c['T'], c['X']))
+            else:
+                f.write("%d\t0\t0\t0\t0\t0\n" % ref_pos)
+        f.close()
 
 # main content
 if __name__ == "__main__":
@@ -216,7 +237,10 @@ if __name__ == "__main__":
     for chrom in sorted(data['num_reads']['mapped'].keys()):
         print_log("  - %s: %s" % (chrom, sum(data['coverage'][chrom].values())/len(data['coverage'][chrom])))
 
-    # generate plots
+    # generate output files
+    print_log("Writing nucleotide counts...")
+    write_nuc_counts(data, args.output)
+    print_log("Finished writing nucleotide counts")
     print_log("Plotting read length distributions...")
     plot_read_length(data, args.output, ylog=args.ylog)
     print_log("Finished plotting read length distributions")
