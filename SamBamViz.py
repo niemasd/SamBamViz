@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import pysam
 
 # constants
-VERSION = '0.0.3'
+VERSION = '0.0.4'
 global LOGFILE; LOGFILE = None
 
 # prep matplotlib/seaborn
@@ -45,6 +45,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', required=False, type=str, default='stdin', help="Input File (SAM/BAM)")
     parser.add_argument('-o', '--output', required=True, type=str, help="Output Directory")
+    parser.add_argument('-q', '--base_qual', required=False, type=float, default=0, help="Minimum base quality to include base in counts")
+    parser.add_argument('-m', '--map_qual', required=False, type=float, default=0, help="Minimum mapping quality to include read in counts")
     parser.add_argument('--ylog', action="store_true", help="Log-scale Y-Axis")
     args = parser.parse_args()
     if isfile(args.output) or isdir(args.output):
@@ -93,6 +95,8 @@ def compute_stats(aln):
 
     # iterate over SAM/BAM
     for read in aln:
+        if read.mapping_quality < args.map_qual:
+            continue # skip low-map-quality reads
         data['num_reads']['all'] += 1
 
         # insert size
@@ -109,6 +113,7 @@ def compute_stats(aln):
         else:
             # parse chromosome name and add if new
             chrom = read.reference_name
+            quals = read.query_qualities
             if chrom not in data['num_reads']['mapped']:
                 data['num_reads']['mapped'][chrom] = 0
                 data['read_length']['raw']['mapped'][chrom] = list()
@@ -119,6 +124,8 @@ def compute_stats(aln):
             data['read_length']['raw']['mapped'][chrom].append(read.query_length)
             data['read_length']['clipped']['mapped'][chrom].append(read.query_alignment_length)
             for read_pos, ref_pos in read.get_aligned_pairs(matches_only=True, with_seq=False):
+                if quals[read_pos] < args.base_qual:
+                    continue # skip low-quality bases
                 if ref_pos not in data['coverage'][chrom]:
                     data['coverage'][chrom][ref_pos] = 0
                     data['nuc_count'][chrom][ref_pos] = {'A':0, 'C':0, 'G':0, 'T':0, 'X':0}
