@@ -184,12 +184,12 @@ def plot_coverage(data, outdir, ylog=False):
 def write_nuc_counts(data, outdir):
     for chrom in sorted(data['nuc_count'].keys()):
         f = open("%s/nuc_count_%s.tsv" % (outdir, chrom.replace(' ','-')), 'w')
-        f.write("Pos\tA\tC\tG\tT\tOther\n")
+        f.write("Pos\tA\tC\tG\tT\tOther\tTotal\n")
         max_ref_pos = max(data['nuc_count'][chrom].keys())
         for ref_pos in range(max_ref_pos+1):
             if ref_pos in data['nuc_count'][chrom]:
                 c = data['nuc_count'][chrom][ref_pos]
-                f.write("%d\t%d\t%d\t%d\t%d\t%d\n" % (ref_pos, c['A'], c['C'], c['G'], c['T'], c['X']))
+                f.write("%d\t%d\t%d\t%d\t%d\t%d\t%d\n" % (ref_pos, c['A'], c['C'], c['G'], c['T'], c['X'], sum(c.values())))
             else:
                 f.write("%d\t0\t0\t0\t0\t0\n" % ref_pos)
         f.close()
