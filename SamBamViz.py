@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import pysam
 
 # constants
-VERSION = '0.0.4'
+VERSION = '0.0.5'
 global LOGFILE; LOGFILE = None
 
 # prep matplotlib/seaborn
@@ -48,6 +48,7 @@ def parse_args():
     parser.add_argument('-q', '--base_qual', required=False, type=float, default=0, help="Minimum base quality to include base in counts")
     parser.add_argument('-m', '--map_qual', required=False, type=float, default=0, help="Minimum mapping quality to include read in counts")
     parser.add_argument('--ylog', action="store_true", help="Log-scale Y-Axis")
+    parser.add_argument('--version', action="store_true", help="Show SamBamViz version")
     args = parser.parse_args()
     if isfile(args.output) or isdir(args.output):
         error("Output already exits: %s" % args.output)
@@ -196,6 +197,10 @@ def write_nuc_counts(data, outdir):
 
 # main content
 if __name__ == "__main__":
+    # print version (if relevant)
+    if '--version' in argv or '-version' in argv:
+        print("SamBamViz v%s" % VERSION); exit()
+
     # prep user input
     if len(argv) == 1:
         pass # TODO: In the future, run GUI here to fill in argv accordingly (so argparse will run fine)
