@@ -192,7 +192,7 @@ def write_nuc_counts(data, outdir):
                 c = data['nuc_count'][chrom][ref_pos]
                 f.write("%d\t%d\t%d\t%d\t%d\t%d\t%d\n" % (ref_pos, c['A'], c['C'], c['G'], c['T'], c['X'], sum(c.values())))
             else:
-                f.write("%d\t0\t0\t0\t0\t0\n" % ref_pos)
+                f.write("%d\t0\t0\t0\t0\t0\t0\n" % ref_pos)
         f.close()
 
 # main content
