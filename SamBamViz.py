@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import pysam
 
 # constants
-VERSION = '0.0.6'
+VERSION = '0.0.7'
 global LOGFILE; LOGFILE = None
 
 # prep matplotlib/seaborn
@@ -104,7 +104,7 @@ def compute_stats(aln):
         data['num_reads']['all'] += 1
 
         # insert size
-        if read.template_length > 0: #and read.is_proper_pair and read.is_paired:
+        if read.template_length > 0:
             data['insert_size'].append(read.template_length)
 
         # unmapped reads
@@ -134,8 +134,10 @@ def compute_stats(aln):
                     data['coverage'][chrom][ref_pos] = 0
                     data['nuc_count'][chrom][ref_pos] = {'A':0, 'C':0, 'G':0, 'T':0, 'X':0}
                 data['coverage'][chrom][ref_pos] += 1
-                nuc = read.query_sequence[read_pos].upper()
-                if nuc not in {'A','C','G','T'}:
+                nuc = read.query_sequence[read_pos]
+                if 'a' <= nuc <= 'z':
+                    nuc = {'a':'A', 'c':'C', 'g':'G', 't':'T'}[nuc]
+                elif nuc not in {'A','C','G','T'}:
                     nuc = 'X'
                 data['nuc_count'][chrom][ref_pos][nuc] += 1
     return data
