@@ -7,7 +7,7 @@ SamBamViz: Tool for generating useful visualizations from a SAM/BAM file
 from datetime import datetime
 from matplotlib import rcParams
 from matplotlib.lines import Line2D
-from os import makedirs
+from os import cpu_count, makedirs
 from os.path import isdir, isfile
 from seaborn import color_palette, kdeplot, lineplot, set_context, set_style
 from sys import argv, stderr
@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import pysam
 
 # constants
-VERSION = '0.0.5'
+VERSION = '0.0.6'
 global LOGFILE; LOGFILE = None
 
 # prep matplotlib/seaborn
@@ -47,24 +47,27 @@ def parse_args():
     parser.add_argument('-o', '--output', required=True, type=str, help="Output Directory")
     parser.add_argument('-q', '--base_qual', required=False, type=float, default=0, help="Minimum base quality to include base in counts")
     parser.add_argument('-m', '--map_qual', required=False, type=float, default=0, help="Minimum mapping quality to include read in counts")
+    parser.add_argument('-t', '--threads', required=False, type=int, default=cpu_count(), help="Number of Threads (BAM decompression)")
     parser.add_argument('--ylog', action="store_true", help="Log-scale Y-Axis")
     parser.add_argument('--version', action="store_true", help="Show SamBamViz version")
     args = parser.parse_args()
+    if args.threads < 1 or args.threads > cpu_count():
+        error("Invalid number of threads: %d (must be between 1 and %d)" % (args.threads, cpu_count()))
     if isfile(args.output) or isdir(args.output):
         error("Output already exits: %s" % args.output)
     return args
 
 # open input SAM/BAM file
-def open_sam(fn):
+def open_sam(fn, threads):
     tmp = pysam.set_verbosity(0) # disable htslib verbosity to avoid "no index file" warning
     if fn.lower() == 'stdin':
-        aln = pysam.AlignmentFile('-', 'r') # standard input --> SAM
+        aln = pysam.AlignmentFile('-', 'r', threads=threads) # standard input --> SAM
     elif not isfile(fn):
         error("File not found: %s" % fn)
     elif fn.lower().endswith('.sam'):
-        aln = pysam.AlignmentFile(fn, 'r')
+        aln = pysam.AlignmentFile(fn, 'r', threads=threads)
     elif fn.lower().endswith('.bam'):
-        aln = pysam.AlignmentFile(fn, 'rb')
+        aln = pysam.AlignmentFile(fn, 'rb', threads=threads)
     else:
         error("Invalid input alignment file extension: %s" % fn)
     pysam.set_verbosity(tmp) # re-enable htslib verbosity and finish up
@@ -95,7 +98,7 @@ def compute_stats(aln):
     }
 
     # iterate over SAM/BAM
-    for read in aln:
+    for read in aln.fetch(until_eof=True):
         if read.mapping_quality < args.map_qual:
             continue # skip low-map-quality reads
         data['num_reads']['all'] += 1
@@ -205,7 +208,7 @@ if __name__ == "__main__":
     if len(argv) == 1:
         pass # TODO: In the future, run GUI here to fill in argv accordingly (so argparse will run fine)
     args = parse_args()
-    aln = open_sam(args.input)
+    aln = open_sam(args.input, args.threads)
     makedirs(args.output, exist_ok=False)
     LOGFILE = open("%s/log.txt" % args.output, 'w')
     print_log("Executing SamBamViz v%s" % VERSION)
