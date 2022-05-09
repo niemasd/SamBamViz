@@ -1,6 +1,7 @@
-# SAM/BAM files
+# SamBamViz input/output files
 *.sam
 *.bam
+*.tsv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
