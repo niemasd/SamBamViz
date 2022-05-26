@@ -1,0 +1,111 @@
+<html>
+  <head>
+    <title>SamBamViz VIZualizer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="layout">
+      <div id="options">
+        <h1>SamBamViz</h1>
+        <h3>File Select</h3>
+        <label>Select SamBamViz File: <span class="important">*</span></label>
+        <input type="file" id="sambamviz-load" />
+        <br />
+        <label>Select Reference FASTA File:</label>
+        <input type="file" id="fasta-load" />
+        <br />
+        <button id="load-files">Load SamBamViz</button>
+        <br />
+        <h3>Color Picker</h3>
+        <div id="color-grid">
+          <label>A</label>
+          <input
+            class="color-picker"
+            id="a-color"
+            type="color"
+            value="#65F73E"
+          />
+          <label>C</label>
+          <input
+            class="color-picker"
+            id="c-color"
+            type="color"
+            value="#FFB340"
+          />
+          <label>G</label>
+          <input
+            class="color-picker"
+            id="g-color"
+            type="color"
+            value="#EB413C"
+          />
+          <label>T</label>
+          <input
+            class="color-picker"
+            id="t-color"
+            type="color"
+            value="#3C89EE"
+          />
+          <label>Other</label>
+          <input
+            class="color-picker"
+            id="n-color"
+            type="color"
+            value="#000000"
+          />
+        </div>
+
+        <h3>Y-Axis Options</h3>
+        <div>
+          <input type="radio" id="linear-option" name="yaxis" checked="true" />
+          <label for="linear-option">Count (Linear Scale)</label>
+        </div>
+        <div>
+          <input type="radio" id="log-option" name="yaxis" />
+          <label for="log-option">Count (Log Scale)</label>
+        </div>
+        <div>
+          <input type="radio" id="proportion-option" name="yaxis" />
+          <label for="proportion-option">Proportion</label>
+        </div>
+        <h3>Range of Data</h3>
+        <div id="range-selector">
+          <span>Range: </span>
+          <input type="number" id="lower-bound" min="0" max="0" />
+          <span>-</span>
+          <input type="number" id="upper-bound" min="0" max="0" />
+        </div>
+        <br />
+        <button id="update-graph">Update SamBamViz</button>
+        <br />
+        <div id="info-box">
+          <div>
+            <b>Export:</b> Click on the circular "..." button in the top-right
+            corner to save as SVG or PNG.
+          </div>
+          <div>
+            <b>Color/Y-Axis:</b> Click "Load SamBamViz" after customizing to
+            update plot.
+          </div>
+          <div>
+            <b>Reset Range</b> Click "Upload Files" to reset data range (keeps
+            colors/Y-axis).
+          </div>
+        </div>
+      </div>
+      <div id="graph">
+        <div id="view"></div>
+      </div>
+    </div>
+
+    <script src="vega/d3.v7.min.js"></script>
+    <script src="vega/vega@5.js"></script>
+    <script src="vega/vega-lite@5.js"></script>
+    <script src="vega/vega-embed@6.js"></script>
+
+    <script src="init.js"></script>
+    <script src="tsv-loader-vega.js"></script>
+    <script src="bar-chart.js"></script>
+    <script src="main.js"></script>
+  </body>
+</html>
