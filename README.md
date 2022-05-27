@@ -36,6 +36,9 @@ usage: SamBamViz.py [-h] [-i INPUT] [-o OUTPUT] [-q BASE_QUAL] [-m MAP_QUAL] [--
 SamBamViz will output a TSV file in which each row corresponds to a genome position and the columns denote "count of A", "count of C", etc. This TSV file can then be visualized using the [web visualization tool](https://niemasd.github.io/SamBamViz/).
 
 # Notes
+## Zero-based Indexing
+Note that SamBamViz uses **zero**-based indexing, meaning the first base of the genome is at position **0**, not position 1. If you want to explore specific positions of interest, remember to subtract 1 from the position if your position of interest uses one-based indexing.
+
 ## Adding SamBamViz to Existing Pipelines
 The command-line SamBamViz program can easily be added to any viral genomics pipeline. Because it is able to read SAM/BAM data streamed via standard input, and because it does ***not*** require the SAM/BAM to be sorted, the SAM/BAM data can be streamed to the command-line SamBamViz program directly from the read mapper to avoid unnecessary slow disk access. Here is a simple example pipeline that maps reads, and then feeds the SAM data to both SamBamViz and `samtools sort` via [`tee`](https://en.wikipedia.org/wiki/Tee_(command)):
 
