@@ -87,7 +87,7 @@ def load_data(in_fn, positions):
             a, c, g, t, x = [int(v) for v in parts[1:6]]; tot = a + c + g + t + x
             labels.append('%s (%d)' % (parts[0].strip(), tot))
             if tot == 0:
-                prop_x.append(1)
+                prop_a.append(0); prop_c.append(0); prop_g.append(0); prop_t.append(0); prop_x.append(1)
             else:
                 prop_a.append(a/tot); prop_c.append(c/tot); prop_g.append(g/tot); prop_t.append(t/tot); prop_x.append(x/tot)
     return labels, prop_a, prop_c, prop_g, prop_t, prop_x
