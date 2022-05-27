@@ -45,4 +45,5 @@ minimap2 -t 6 -a -x sr NC_045512.2.fas sample_R1.fastq.gz sample_R2.fastq.gz | t
 ## Data Privacy
 The web visualization tool runs ***client*-side** (not server-side), meaning your SamBamViz TSV data **do *not*** get sent to an external server: everything happens directly on your local machine.
 
-Credits: [Grant Cheng](https://www.linkedin.com/in/grant-cheng-52171b205/) and [Annie Liu](https://www.linkedin.com/in/anniejiaqiliu/)
+## Credits
+[Web visualization tool](https://niemasd.github.io/SamBamViz/) created by [Grant Cheng](https://www.linkedin.com/in/grant-cheng-52171b205/) and [Annie Liu](https://www.linkedin.com/in/anniejiaqiliu/).
