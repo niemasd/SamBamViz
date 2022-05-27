@@ -37,7 +37,7 @@ SamBamViz will output a TSV file in which each row corresponds to a genome posit
 
 # Notes
 ## Adding SamBamViz to Existing Pipelines
-The command-line SamBamViz program can easily be added to any viral genomics pipeline. Because it is able to read SAM/BAM data streamed via standard input, and because it does ***not*** require the SAM/BAM to be sorted, the SAM/BAM data can be streamed to the command-line SamBamViz program directly from the read mapper to avoid unnecessary slow disk access. Here is an example simple pipeline that maps reads, and then feeds the SAM data to both SamBamViz and `samtools sort` via [`tee`](https://en.wikipedia.org/wiki/Tee_(command)):
+The command-line SamBamViz program can easily be added to any viral genomics pipeline. Because it is able to read SAM/BAM data streamed via standard input, and because it does ***not*** require the SAM/BAM to be sorted, the SAM/BAM data can be streamed to the command-line SamBamViz program directly from the read mapper to avoid unnecessary slow disk access. Here is a simple example pipeline that maps reads, and then feeds the SAM data to both SamBamViz and `samtools sort` via [`tee`](https://en.wikipedia.org/wiki/Tee_(command)):
 
 ```bash
 minimap2 -t 6 -a -x sr NC_045512.2.fas sample_R1.fastq.gz sample_R2.fastq.gz | tee >(SamBamViz.py -q 20 -o sample.sambamviz.tsv) | samtools sort -o sample.sorted.bam
