@@ -10,6 +10,7 @@ Example data can be found in the [`example`](example) directory.
 The command-line SamBamViz program is written in Python 3 and depends on [Pysam](https://github.com/pysam-developers/pysam). You can simply download [SamBamViz.py](SamBamViz.py) to your machine and make it executable:
 
 ```bash
+pip install pysam # if pysam is not already installed
 wget "https://raw.githubusercontent.com/niemasd/SamBamViz/main/SamBamViz.py"
 chmod a+x SamBamViz.py
 sudo mv SamBamViz.py /usr/local/bin/SamBamViz.py # optional step to install globally
