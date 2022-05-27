@@ -161,7 +161,7 @@ if __name__ == "__main__":
     aln = open_sam(args.input, args.force_bam)
     print_log("Executing SamBamViz v%s" % VERSION)
     print_log("Input file: %s" % args.input)
-    print_log("Output directory: %s" % args.output)
+    print_log("Output file: %s" % args.output)
 
     # compute stats from SAM/BAM
     print_log("Parsing input file...")
