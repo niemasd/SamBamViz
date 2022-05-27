@@ -7,6 +7,6 @@ SamBamViz is a tool for generating visualizations of coverage and base counts ac
 Example data can be found in the [`example`](example) directory.
 
 # Notes
-The web visualization tool runs **client-side** (not server-side), meaning your SamBamViz TSV data do **not** get sent to an external server: everything happens directly on your local machine.
+The web visualization tool runs ***client*-side** (not server-side), meaning your SamBamViz TSV data **do *not*** get sent to an external server: everything happens directly on your local machine.
 
 Credits: [Grant Cheng](https://www.linkedin.com/in/grant-cheng-52171b205/) and [Annie Liu](https://www.linkedin.com/in/anniejiaqiliu/)
