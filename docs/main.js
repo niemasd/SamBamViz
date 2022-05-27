@@ -53,26 +53,25 @@ async function generateData() {
 async function processFiles(fileType) {
     try {
         if (fileType === SBV) {
-            const sbvFile =
-                SBV_SELECTOR.files[0];
+            const sbvFile = SBV_SELECTOR.files[0];
 
-            if (sbvFile.name.split(".")[1] === "tsv") {
+            /* if (sbvFile.name.split(".").pop().toLowerCase() === "tsv") { */ /* NIEMA don't check file extension (yet?) */
                 FILE_STATUS.sbv = true;
                 await processSamBamViz(sbvFile);
-            } else {
+            /* } else { 
                 FILE_STATUS.sbv = false;
-            }
+            } */ /* NIEMA see above */
         }
 
         if (fileType === FAS) {
             const fasFile = FAS_SELECTOR.files[0];
 
-            if (fasFile.name.split(".")[1] === "fas") {
+            /* if (fasFile.name.split(".")[1] === "fas") { */ /* NIEMA don't check file extension (yet?) */
                 FILE_STATUS.fas = true;
                 await processFasta(fasFile);
-            } else {
+            /* } else {
                 FILE_STATUS.fas = false;
-            }
+            } */ /* NIEMA see above */
         }
     } catch (error) {
         console.log(error);
