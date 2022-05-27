@@ -39,6 +39,7 @@ def parse_args():
     parser.add_argument('-ct', '--color_t', required=False, type=str, default=DEFAULT_COLOR_T, help="Color: T")
     parser.add_argument('-cx', '--color_x', required=False, type=str, default=DEFAULT_COLOR_X, help="Color: Other")
     parser.add_argument('-bw', '--bar_width', required=False, type=float, default=DEFAULT_BAR_WIDTH, help="Bar Width")
+    parser.add_argument('-fw', '--fig_width', required=False, type=float, default=None, help="Figure Width")
     parser.add_argument('-hl', '--hide_legend', action="store_true", help="Hide Legend")
     args = parser.parse_args()
     if not isfile(args.input):
@@ -93,8 +94,10 @@ def load_data(in_fn, positions):
     return labels, prop_a, prop_c, prop_g, prop_t, prop_x
 
 # plot bars
-def plot_bars(out_fn, labels, prop_a, prop_c, prop_g, prop_t, prop_x, color_a=DEFAULT_COLOR_A, color_c=DEFAULT_COLOR_C, color_g=DEFAULT_COLOR_G, color_t=DEFAULT_COLOR_T, color_x=DEFAULT_COLOR_X, bar_width=DEFAULT_BAR_WIDTH, hide_legend=False):
+def plot_bars(out_fn, labels, prop_a, prop_c, prop_g, prop_t, prop_x, color_a=DEFAULT_COLOR_A, color_c=DEFAULT_COLOR_C, color_g=DEFAULT_COLOR_G, color_t=DEFAULT_COLOR_T, color_x=DEFAULT_COLOR_X, bar_width=DEFAULT_BAR_WIDTH, fig_width=None, hide_legend=False):
     fig, ax = plt.subplots()
+    if fig_width:
+        fig.set_figwidth(fig_width)
     ax.bar(labels, prop_a, bar_width, color=color_a, label='A')
     ax.bar(labels, prop_c, bar_width, color=color_c, label='C')
     ax.bar(labels, prop_g, bar_width, color=color_g, label='G')
@@ -113,4 +116,4 @@ if __name__ == "__main__":
     args = parse_args()
     positions = parse_positions(args.positions)
     labels, prop_a, prop_c, prop_g, prop_t, prop_x = load_data(args.input, positions)
-    plot_bars(args.output, labels, prop_a, prop_c, prop_g, prop_t, prop_x, color_a=args.color_a, color_c=args.color_c, color_g=args.color_g, color_t=args.color_t, color_x=args.color_x, bar_width=args.bar_width, hide_legend=args.hide_legend)
+    plot_bars(args.output, labels, prop_a, prop_c, prop_g, prop_t, prop_x, color_a=args.color_a, color_c=args.color_c, color_g=args.color_g, color_t=args.color_t, color_x=args.color_x, bar_width=args.bar_width, fig_width=args.fig_width, hide_legend=args.hide_legend)
