@@ -38,9 +38,9 @@ SamBamViz will output a TSV file in which each row corresponds to a genome posit
 
 # Notes
 ## Zero-based Indexing
-Note that, by default, SamBamViz uses **zero**-based indexing, meaning the first base of the genome is at position **0**, not position 1.
+Note that, by default, SamBamViz uses ***zero***-based indexing, meaning the first base of the genome is at position **0**, not position 1.
 
-If you want to use **one**-based indexing, meaning the first base of the genome is at position **1**, you can run the SamBamViz command line tool with the `--start_at_one` argument. No need to do anything differently in the web app: it will plot using whatever values are in the TSV you provide it.
+If you want to use ***one***-based indexing, meaning the first base of the genome is at position **1**, you can run the SamBamViz command line tool with the `--start_at_one` argument. No need to do anything differently in the web app: it will plot using whatever values are in the TSV you provide it.
 
 ## Scalability
 The command-line SamBamViz program stores counters for each base at every position of the reference genome, and it increments those counters as mapped reads are streamed in. As such, its runtime scales linearly with the number of (mapped) reads, and its peak memory usage is constant with respect to the number of reads and scales linearly with the length of the reference genome.
