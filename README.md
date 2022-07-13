@@ -29,6 +29,7 @@ usage: SamBamViz.py [-h] [-i INPUT] [-o OUTPUT] [-q BASE_QUAL] [-m MAP_QUAL] [--
   -o OUTPUT, --output OUTPUT            Output Base Counts (TSV) (default: stdout)
   -q BASE_QUAL, --base_qual BASE_QUAL   Minimum base quality to include base in counts (default: 0)
   -m MAP_QUAL, --map_qual MAP_QUAL      Minimum mapping quality to include read in counts (default: 0)
+  --start_at_one                        Use 1-based indexing (rather than 0-based indexing) (default: False)
   --force_bam                           Force BAM Input (otherwise infer from filename) (default: False)
   --version                             Show SamBamViz version (default: False)
 ```
