@@ -11,7 +11,7 @@ import argparse
 import pysam
 
 # constants
-VERSION = '0.0.8'
+VERSION = '0.0.9'
 NUM_READS_STATUS = 50000
 
 # print log
@@ -34,6 +34,7 @@ def parse_args():
     parser.add_argument('-o', '--output', required=False, type=str, default='stdout', help="Output Base Counts (TSV)")
     parser.add_argument('-q', '--base_qual', required=False, type=float, default=0, help="Minimum base quality to include base in counts")
     parser.add_argument('-m', '--map_qual', required=False, type=float, default=0, help="Minimum mapping quality to include read in counts")
+    parser.add_argument('--start_at_one', action="store_true", help="Use 1-based indexing (rather than 0-based indexing)")
     parser.add_argument('--force_bam', action="store_true", help="Force BAM Input (otherwise infer from filename)")
     parser.add_argument('--version', action="store_true", help="Show SamBamViz version")
     args = parser.parse_args()
@@ -141,11 +142,12 @@ def write_nuc_counts(data, outdir):
     f.write("Pos\tA\tC\tG\tT\tOther\tTotal\n")
     max_ref_pos = max(data['nuc_count'].keys())
     for ref_pos in range(max_ref_pos+1):
+        out_pos = ref_pos + args.start_at_one
         if ref_pos in data['nuc_count']:
             c = data['nuc_count'][ref_pos]
-            f.write("%d\t%d\t%d\t%d\t%d\t%d\t%d\n" % (ref_pos, c['A'], c['C'], c['G'], c['T'], c['X'], sum(c.values())))
+            f.write("%d\t%d\t%d\t%d\t%d\t%d\t%d\n" % (out_pos, c['A'], c['C'], c['G'], c['T'], c['X'], sum(c.values())))
         else:
-            f.write("%d\t0\t0\t0\t0\t0\t0\n" % ref_pos)
+            f.write("%d\t0\t0\t0\t0\t0\t0\n" % out_pos)
     f.close()
 
 # main content
@@ -160,6 +162,10 @@ if __name__ == "__main__":
     args = parse_args()
     aln = open_sam(args.input, args.force_bam)
     print_log("Executing SamBamViz v%s" % VERSION)
+    if args.start_at_one:
+        print_log("Using 1-based indexing")
+    else:
+        print_log("Using 0-based indexing")
     print_log("Input file: %s" % args.input)
     print_log("Output file: %s" % args.output)
 

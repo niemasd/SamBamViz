@@ -84,7 +84,7 @@ function loadBarGraph(data, yAxisData) {
             {
                 fill: 'color',
                 orient: 'right',
-                title: 'Codes',
+                title: 'Legend',
                 format: '',
                 encode: {
                     symbols: {
