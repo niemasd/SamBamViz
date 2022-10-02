@@ -11,7 +11,7 @@ import argparse
 import pysam
 
 # constants
-VERSION = '0.0.9'
+VERSION = '0.0.10'
 NUM_READS_STATUS = 50000
 
 # print log
@@ -114,13 +114,13 @@ def compute_stats(aln, verbose=False):
                 error("BAM must only contain a single reference 'chromosome' (the viral genome)")
 
             # parse mapped read
-            quals = read.query_qualities
+            quals = read.query_qualities; start = read.query_alignment_start; end = read.query_alignment_end
             data['num_reads']['mapped'] += 1
             data['read_length']['raw']['mapped'].append(read.query_length)
             data['read_length']['clipped']['mapped'].append(read.query_alignment_length)
             for read_pos, ref_pos in read.get_aligned_pairs(matches_only=True, with_seq=False):
-                if quals[read_pos] < args.base_qual:
-                    continue # skip low-quality bases
+                if read_pos < start or read_pos >= end or quals[read_pos] < args.base_qual:
+                    continue # skip soft-clipped and low-quality bases
                 if ref_pos not in data['coverage']:
                     data['coverage'][ref_pos] = 0
                     data['nuc_count'][ref_pos] = {'A':0, 'C':0, 'G':0, 'T':0, 'X':0}
