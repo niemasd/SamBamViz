@@ -39,6 +39,7 @@ COLOR_PICKERS.forEach((input) => {
  * Turns the data from a TSV file to an array in memory
  */
 async function generateData() {
+    tsvString = tsvString.replace('\t-\t', '\tOther\t') // ViralConsensus position counts TSV compatibility
     try {
         await tsvToArr(tsvString);
     } catch (error) {
